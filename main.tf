@@ -48,6 +48,12 @@ resource "google_compute_instance" "default" {
         }
     }
 
+    # Explicitly define a least-privilege service account instead of using the default Compute Engine SA
+    service_account {
+      email  = "<SERVICE_ACCOUNT_EMAIL>"
+      scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+    }
+
     #depends_on = ["google_compute_firewall.default"]
 }
 
@@ -153,4 +159,3 @@ resource "google_container_cluster" "demo_orca_01" {
 #  #  horizontal_pod_autoscaling { disabled = false }
 #  #}
 #}
-
