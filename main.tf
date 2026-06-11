@@ -35,10 +35,11 @@ resource "google_compute_instance" "default" {
 #      on_host_maintenance = "TERMINATE" # Required for GPU instances
 #      automatic_restart   = true
 #    }
-#
-#    metadata = {
-#      install-nvidia-driver = "True" # Installs drivers on startup
-#    }
+
+    metadata = {
+      enable-oslogin        = "TRUE"
+      block-project-ssh-keys = "TRUE"
+    }
 
     network_interface {
         network = "${var.vpc}"
@@ -153,4 +154,3 @@ resource "google_container_cluster" "demo_orca_01" {
 #  #  horizontal_pod_autoscaling { disabled = false }
 #  #}
 #}
-
