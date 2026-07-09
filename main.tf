@@ -73,19 +73,13 @@ resource "google_storage_bucket" "scan_test_bucket_2" {
   force_destroy = true  # Allows Terraform to delete the bucket even if it contains objects
 
   # Optional: standard security and lifecycle settings
-  #public_access_prevention = "inherited"
+  public_access_prevention = "enforced"
 
   versioning {
     enabled = true
   }
 
   uniform_bucket_level_access = true
-}
-
-resource "google_storage_bucket_iam_member" "public_rule" {
-  bucket = google_storage_bucket.scan_test_bucket_2.name
-  role   = "roles/storage.objectViewer"
-  member = "allUsers"
 }
 
 resource "google_container_cluster" "orca-gke-public" {
@@ -158,4 +152,3 @@ resource "google_container_cluster" "orca-gke-private" {
   #  horizontal_pod_autoscaling { disabled = false }
   #}
 }
-
