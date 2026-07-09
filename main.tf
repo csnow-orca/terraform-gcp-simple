@@ -13,13 +13,14 @@ data "google_compute_image" "latest_ubuntu" {
 resource "google_compute_instance" "default" {
     count = var.node_count
     name = "${var.prefix}-${count.index}"
-    machine_type = "e2-micro"
+    machine_type = "e2-medium"
     #machine_type = "n2-standard-4"
     allow_stopping_for_update = true
 
     boot_disk {
          initialize_params {
              image =  data.google_compute_image.latest_ubuntu.self_link
+             #image =  "projects/csnow-orca-test/global/machineImages/csnow-ubuntu-image-01"
              #image =  "ubuntu-2510-questing-amd64-v20260320"
              size  = 100
          }
@@ -81,14 +82,14 @@ resource "google_storage_bucket" "scan_test_bucket_2" {
   uniform_bucket_level_access = true
 }
 
-#resource "google_storage_bucket_iam_member" "public_rule" {
-#  bucket = google_storage_bucket.scan_test_bucket_2.name
-#  role   = "roles/storage.objectViewer"
-#  member = "allUsers"
-#}
+resource "google_storage_bucket_iam_member" "public_rule" {
+  bucket = google_storage_bucket.scan_test_bucket_2.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
 
-resource "google_container_cluster" "demo_orca_01" {
-  name     = "${var.prefix}-gke-01"
+resource "google_container_cluster" "orca-gke-public" {
+  name     = "${var.prefix}-gke-02"
   location = "us-west1-a"
   deletion_protection = false
   remove_default_node_pool = false
@@ -96,7 +97,7 @@ resource "google_container_cluster" "demo_orca_01" {
   # We can define additional properties such as node pools, networking, etc.
   initial_node_count = 1
   node_config {
-    machine_type = "e2-small"
+    machine_type = "e2-micro"
 
     # Configure the OAuth scopes to allow the nodes to access Google Cloud services
     oauth_scopes = [
@@ -114,43 +115,47 @@ resource "google_container_cluster" "demo_orca_01" {
   }
 }
 
-#resource "google_container_cluster" "orca-gke-private" {
-#  name     = "${var.prefix}-private-gke-01"
-#  location = "us-west1-a"
-#  deletion_protection = false
-#  remove_default_node_pool = false
-#
-#  # We can define additional properties such as node pools, networking, etc.
-#  initial_node_count = 1
-#  node_config {
-#    machine_type = "e2-medium"
-#
-#    # Configure the OAuth scopes to allow the nodes to access Google Cloud services
-#    oauth_scopes = [
-#      "https://www.googleapis.com/auth/cloud-platform",
-#    ]
-#  }
-#
-#  private_cluster_config {
-#    enable_private_nodes    = true
-#    enable_private_endpoint = true
-#    master_ipv4_cidr_block  = "172.16.0.0/28"
-#  }
-#
-#  master_authorized_networks_config {
-#    cidr_blocks {
-#      cidr_block   = "10.0.0.0/18"
-#      display_name = "internal-vpc-access"
-#    }
-#  }
-#
-#  network = "${var.vpc}"
-#  subnetwork = "${var.subnet}"
-#
-#  # Enable some addons for the cluster
-#  #addons_config {
-#  #  http_load_balancing        { disabled = false }
-#  #  horizontal_pod_autoscaling { disabled = false }
-#  #}
-#}
+resource "google_container_cluster" "orca-gke-private" {
+  name     = "${var.prefix}-private-gke-02"
+  location = "us-west1-a"
+  deletion_protection = false
+  remove_default_node_pool = false
+
+  # We can define additional properties such as node pools, networking, etc.
+  initial_node_count = 1
+  node_config {
+    machine_type = "e2-small"
+
+    # Configure the OAuth scopes to allow the nodes to access Google Cloud services
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ]
+  }
+
+  private_cluster_config {
+    enable_private_nodes    = true
+    enable_private_endpoint = true
+    master_ipv4_cidr_block  = "172.16.0.0/28"
+  }
+
+  master_authorized_networks_config {
+    cidr_blocks {
+      cidr_block   = "10.0.0.0/18"
+      display_name = "internal-vpc-access"
+    }
+    #cidr_blocks {
+    #  cidr_block   = "44.192.133.0/29"
+    #  display_name = "Orca Security Scanner"
+    #}
+  }
+
+  network = "${var.vpc}"
+  subnetwork = "${var.subnet}"
+
+  # Enable some addons for the cluster
+  #addons_config {
+  #  http_load_balancing        { disabled = false }
+  #  horizontal_pod_autoscaling { disabled = false }
+  #}
+}
 
